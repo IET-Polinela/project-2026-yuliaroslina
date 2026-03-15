@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Contact</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:#f6dce3;
+}
+
+.container{
+    width:80%;
+    margin:80px auto;
+    background:white;
+    border-radius:20px;
+    padding:40px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:600;
+    color:#f06292;
+}
+
+.nav a{
+    text-decoration:none;
+    margin-left:25px;
+    color:#444;
+    font-size:16px;
+}
+
+.nav a:hover{
+    color:#f06292;
+}
+
+.title{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.title h1{
+    color:#f06292;
+}
+
+.contact-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:#fff5f8;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    border-top:5px solid #f06292;
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.1);
+}
+
+.icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.card a{
+    text-decoration:none;
+    color:#f06292;
+    font-weight:500;
+}
+
+.footer{
+    text-align:center;
+    margin-top:30px;
+    color:#777;
+    font-size:14px;
+}
+
+.decor{
+    position:absolute;
+    top:40px;
+    right:60px;
+    font-size:120px;
+    opacity:0.05;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="decor">💌</div>
+
+<div class="container">
+
+<div class="header">
+
+<div class="logo">
+Yulia Web
+</div>
+
+<div class="nav">
+<a href="/">Home</a>
+<a href="/about/">About</a>
+<a href="/contacts/">Contacts</a>
+</div>
+
+</div>
+
+<div class="title">
+<h1>Contact Me</h1>
+<p>Silakan hubungi saya melalui media berikut</p>
+</div>
+
+<div class="contact-grid">
+
+<div class="card">
+<div class="icon">📱</div>
+<h3>WhatsApp</h3>
+<a href="https://wa.me/6285273514015">Chat WhatsApp</a>
+</div>
+
+<div class="card">
+<div class="icon">📧</div>
+<h3>Email</h3>
+<p>yuliarosln@gmail.com</p>
+</div>
+
+<div class="card">
+<div class="icon">📷</div>
+<h3>Instagram</h3>
+<a href="https://www.instagram.com/yulia_rosln">yulia_rosln</a>
+</div>
+
+</div>
+
+<div class="footer">
+© 2026 – Project Django Pemrograman Internet
+</div>
+
+</div>
+
+</body>
+</html>
