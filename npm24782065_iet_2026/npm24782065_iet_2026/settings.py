@@ -78,8 +78,12 @@ WSGI_APPLICATION = 'npm24782065_iet_2026.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'smartcity_db',
+        'USER': 'postgres',
+        'PASSWORD': 'Yulia102',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 

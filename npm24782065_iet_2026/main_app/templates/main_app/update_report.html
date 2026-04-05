@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Laporan</title>
+</head>
+<body>
+    <h1>Edit Laporan</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="{% url 'report_list' %}">Kembali ke Daftar Laporan</a>
+</body>
+</html>

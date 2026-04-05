@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hapus Laporan</title>
+</head>
+<body>
+    <h1>Hapus Laporan</h1>
+
+    <p>Apakah kamu yakin ingin menghapus laporan ini?</p>
+
+    <p><strong>{{ report.title }}</strong></p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit">Ya, Hapus</button>
+    </form>
+
+    <br>
+    <a href="{% url 'report_list' %}">Batal</a>
+</body>
+</html>
