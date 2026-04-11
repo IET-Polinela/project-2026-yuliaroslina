@@ -4,29 +4,66 @@
     <title>Daftar Laporan</title>
 </head>
 <body>
-    <h1>Daftar Laporan Masalah Kota</h1>
+    <h1>Daftar Laporan Smart City</h1>
 
-    <a href="{% url 'add_report' %}">Tambah Laporan</a>
-
-    <hr>
+    <a href="{% url 'add_report' %}">Tambah Laporan Baru</a>
+    <br><br>
 
     {% if reports %}
-        <ul>
-            {% for report in reports %}
-                <li>
-                    <strong>{{ report.title }}</strong><br>
-                    Kategori: {{ report.category }}<br>
-                    Deskripsi: {{ report.description }}<br>
-                    Lokasi: {{ report.location }}<br>
-                    Status: {{ report.status }}<br>
-                    Dibuat pada: {{ report.created_at }}<br>
+        <table border="1" cellpadding="10" cellspacing="0">
+            <tr>
+                <th>No</th>
+                <th>Judul</th>
+                <th>Kategori</th>
+                <th>Lokasi</th>
+                <th>Status</th>
+                <th>Dibuat Pada</th>
+                <th>Aksi</th>
+                <th>Workflow</th>
+            </tr>
 
-                    <a href="{% url 'update_report' report.id %}">Edit</a> |
-                    <a href="{% url 'delete_report' report.id %}">Hapus</a>
-                    <br><br>
-                </li>
+            {% for report in reports %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ report.title }}</td>
+                <td>{{ report.category }}</td>
+                <td>{{ report.location }}</td>
+                <td>{{ report.get_status_display }}</td>
+                <td>{{ report.created_at }}</td>
+                <td>
+                    <a href="{% url 'report_detail' report.pk %}">Detail</a> |
+                    <a href="{% url 'update_report' report.pk %}">Edit</a> |
+                    <a href="{% url 'delete_report' report.pk %}">Hapus</a>
+                </td>
+                <td>
+                    {% if report.status == 'REPORTED' %}
+                        <form method="post" action="{% url 'update_status' report.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="VERIFIED">
+                            <button type="submit">Verifikasi</button>
+                        </form>
+
+                    {% elif report.status == 'VERIFIED' %}
+                        <form method="post" action="{% url 'update_status' report.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="IN_PROGRESS">
+                            <button type="submit">Proses</button>
+                        </form>
+
+                    {% elif report.status == 'IN_PROGRESS' %}
+                        <form method="post" action="{% url 'update_status' report.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="RESOLVED">
+                            <button type="submit">Selesaikan</button>
+                        </form>
+
+                    {% elif report.status == 'RESOLVED' %}
+                        <span>Selesai</span>
+                    {% endif %}
+                </td>
+            </tr>
             {% endfor %}
-        </ul>
+        </table>
     {% else %}
         <p>Belum ada laporan.</p>
     {% endif %}
