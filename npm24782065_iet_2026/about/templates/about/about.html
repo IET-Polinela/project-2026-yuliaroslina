@@ -1,137 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>About</title>
+{% extends 'base.html' %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+{% block content %}
+<div class="container mt-5">
+    <div class="p-4 p-md-5 bg-light rounded shadow-sm">
+        <h1 class="mb-3">Tentang Smart City Reports</h1>
+        <p class="lead">
+            Smart City Reports adalah platform berbasis web yang dirancang untuk membantu masyarakat
+            melaporkan permasalahan kota dengan cepat dan efisien.
+        </p>
+        <p>
+            Aplikasi ini mendukung komunikasi antara masyarakat dan pihak terkait dalam mewujudkan
+            lingkungan kota yang lebih bersih, aman, dan responsif.
+        </p>
+    </div>
 
-<style>
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Misi Kami</h3>
+                    <p class="card-text">
+                        Sistem ini bertujuan untuk mempermudah proses pelaporan berbagai masalah publik
+                        seperti jalan rusak, sampah, banjir, dan permasalahan layanan kota lainnya.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-body{
-    margin:0;
-    font-family:'Poppins', sans-serif;
-    background:#f6dce3;
-}
-
-.container{
-    width:80%;
-    margin:80px auto;
-    background:white;
-    border-radius:20px;
-    padding:40px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.1);
-}
-
-.header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:30px;
-}
-
-.logo{
-    font-size:22px;
-    font-weight:600;
-    color:#f06292;
-}
-
-.nav a{
-    text-decoration:none;
-    margin-left:25px;
-    color:#444;
-    font-size:16px;
-}
-
-.nav a:hover{
-    color:#f06292;
-}
-
-.title{
-    text-align:center;
-    margin-bottom:30px;
-}
-
-.title h1{
-    color:#f06292;
-}
-
-.card{
-    background:#fff5f8;
-    padding:25px;
-    border-radius:15px;
-    border-left:6px solid #f06292;
-}
-
-.card ul{
-    list-style:none;
-    padding:0;
-}
-
-.card li{
-    margin:12px 0;
-    font-size:17px;
-}
-
-.footer{
-    text-align:center;
-    margin-top:30px;
-    color:#777;
-    font-size:14px;
-}
-
-.decor{
-    position:absolute;
-    top:40px;
-    right:60px;
-    font-size:120px;
-    opacity:0.05;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="decor">🌸</div>
-
-<div class="container">
-
-<div class="header">
-
-<div class="logo">
-Yulia Web
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Fitur Utama</h3>
+                    <ul class="mb-0">
+                        <li>Pengiriman laporan yang mudah</li>
+                        <li>Pemantauan status laporan yang jelas</li>
+                        <li>Meningkatkan partisipasi masyarakat</li>
+                        <li>Mendukung layanan kota cerdas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-<div class="nav">
-<a href="/">Home</a>
-<a href="/about/">About</a>
-<a href="/contacts/">Contacts</a>
-</div>
-
-</div>
-
-<div class="title">
-<h1>About Me</h1>
-<p>Informasi Mahasiswa</p>
-</div>
-
-<div class="card">
-
-<ul>
-<li><b>Nama :</b> Yulia Roslina</li>
-<li><b>NPM :</b> 24782065</li>
-<li><b>Program Studi :</b> Teknologi Rekayasa Internet</li>
-<li><b>Mata Kuliah :</b> Pemrograman Internet</li>
-</ul>
-
-</div>
-
-<div class="footer">
-© 2026 – Project Django Pemrograman Internet
-</div>
-
-</div>
-
-</body>
-</html>
+{% endblock %}
