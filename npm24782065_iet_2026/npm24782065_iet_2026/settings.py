@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'main_app',
     'about',
     'contacts',
+    'usermanagement_24782065',
 ]
 
 MIDDLEWARE = [
@@ -79,13 +80,21 @@ WSGI_APPLICATION = 'npm24782065_iet_2026.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'smartcity_db',
+        'NAME': 'smartcity_lab6_db',
         'USER': 'postgres',
         'PASSWORD': 'Yulia102',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
+
+
+# Custom User Model
+AUTH_USER_MODEL = 'usermanagement_24782065.CustomUser'
+
+# Authentication Redirect
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 
 # Password validation
@@ -123,3 +132,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

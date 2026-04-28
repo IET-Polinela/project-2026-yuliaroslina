@@ -15,7 +15,7 @@
         <p class="text-muted mb-0">Kelola laporan masyarakat dengan tampilan yang rapi dan terstruktur.</p>
     </div>
 
-    {% if reports %}
+    {% if user.is_authenticated and user.is_admin %}
     <a href="{% url 'add_report' %}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Tambah Laporan Baru
     </a>
@@ -69,29 +69,33 @@
                             </a>
                         </td>
                         <td>
-                            {% if report.status == 'REPORTED' %}
-                                <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
-                                      onsubmit="return confirm('Ubah status laporan menjadi Verified?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="VERIFIED">
-                                    <button type="submit" class="btn btn-sm btn-primary">Verifikasi</button>
-                                </form>
-                            {% elif report.status == 'VERIFIED' %}
-                                <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
-                                      onsubmit="return confirm('Ubah status laporan menjadi In Progress?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="IN_PROGRESS">
-                                    <button type="submit" class="btn btn-sm btn-warning text-dark">Proses</button>
-                                </form>
-                            {% elif report.status == 'IN_PROGRESS' %}
-                                <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
-                                      onsubmit="return confirm('Ubah status laporan menjadi Resolved?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="RESOLVED">
-                                    <button type="submit" class="btn btn-sm btn-success">Selesaikan</button>
-                                </form>
-                            {% elif report.status == 'RESOLVED' %}
-                                <span class="text-muted">Selesai</span>
+                            {% if user.is_authenticated and user.is_admin %}
+                                {% if report.status == 'REPORTED' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi Verified?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="VERIFIED">
+                                        <button type="submit" class="btn btn-sm btn-primary">Verifikasi</button>
+                                    </form>
+                                {% elif report.status == 'VERIFIED' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi In Progress?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark">Proses</button>
+                                    </form>
+                                {% elif report.status == 'IN_PROGRESS' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi Resolved?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="RESOLVED">
+                                        <button type="submit" class="btn btn-sm btn-success">Selesaikan</button>
+                                    </form>
+                                {% elif report.status == 'RESOLVED' %}
+                                    <span class="text-muted">Selesai</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Khusus Admin</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -105,9 +109,12 @@
 <div class="text-center py-5">
     <h4 class="mb-3">Belum ada laporan</h4>
     <p class="text-muted">Silakan tambahkan laporan baru untuk mulai mengelola data.</p>
+
+    {% if user.is_authenticated and user.is_admin %}
     <a href="{% url 'add_report' %}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Tambah Laporan
     </a>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

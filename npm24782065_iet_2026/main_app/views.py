@@ -30,6 +30,12 @@ class ReportCreateView(CreateView):
     template_name = 'main_app/add_report.html'
     success_url = reverse_lazy('report_list')
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_admin:
+            messages.error(request, 'Akses Ditolak')
+            return redirect('report_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         messages.success(self.request, 'Laporan berhasil ditambahkan.')
         return super().form_valid(form)
@@ -41,6 +47,12 @@ class ReportUpdateView(UpdateView):
     template_name = 'main_app/update_report.html'
     success_url = reverse_lazy('report_list')
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_admin:
+            messages.error(request, 'Akses Ditolak')
+            return redirect('report_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         messages.success(self.request, 'Laporan berhasil diperbarui.')
         return super().form_valid(form)
@@ -51,12 +63,24 @@ class ReportDeleteView(DeleteView):
     template_name = 'main_app/delete_report.html'
     success_url = reverse_lazy('report_list')
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_admin:
+            messages.error(request, 'Akses Ditolak')
+            return redirect('report_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         messages.success(self.request, 'Laporan berhasil dihapus.')
         return super().form_valid(form)
 
 
 class ReportUpdateStatusView(View):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_admin:
+            messages.error(request, 'Akses Ditolak')
+            return redirect('report_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def post(self, request, pk):
         report = get_object_or_404(Report, pk=pk)
         new_status = request.POST.get('status')
