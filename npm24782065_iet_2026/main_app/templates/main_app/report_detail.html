@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Detail Laporan{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'report_list' %}">Reports</a></li>
+        <li class="breadcrumb-item active text-muted" aria-current="page">Detail Laporan</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Detail Laporan</h1>
+            <a href="{% url 'report_list' %}" class="btn btn-secondary">Kembali</a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">{{ report.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Judul:</strong>
+                    <p class="mb-0">{{ report.title }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Kategori:</strong>
+                    <p class="mb-0">{{ report.category }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Deskripsi:</strong>
+                    <p class="mb-0">{{ report.description }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Lokasi:</strong>
+                    <p class="mb-0">{{ report.location }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Status:</strong><br>
+                    {% if report.status == 'REPORTED' %}
+                        <span class="badge bg-secondary">Reported</span>
+                    {% elif report.status == 'VERIFIED' %}
+                        <span class="badge bg-primary">Verified</span>
+                    {% elif report.status == 'IN_PROGRESS' %}
+                        <span class="badge bg-warning text-dark">In Progress</span>
+                    {% elif report.status == 'RESOLVED' %}
+                        <span class="badge bg-success">Resolved</span>
+                    {% else %}
+                        <span class="badge bg-dark">{{ report.get_status_display }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Dibuat pada:</strong>
+                    <p class="mb-0">{{ report.created_at }}</p>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <a href="{% url 'update_report' report.pk %}" class="btn btn-warning text-dark">Edit</a>
+                    <a href="{% url 'delete_report' report.pk %}" class="btn btn-danger">Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
