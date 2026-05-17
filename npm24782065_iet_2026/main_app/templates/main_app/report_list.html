@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Laporan{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item active text-muted" aria-current="page">Reports</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">Daftar Laporan Smart City</h1>
+        <p class="text-muted mb-0">Kelola laporan masyarakat dengan tampilan yang rapi dan terstruktur.</p>
+    </div>
+
+    {% if user.is_authenticated and user.is_admin %}
+    <a href="{% url 'add_report' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Tambah Laporan Baru
+    </a>
+    {% endif %}
+</div>
+
+{% if reports %}
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <div class="mb-3">
+            <label for="searchInput" class="form-label fw-semibold">Cari Laporan</label>
+            <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="Ketik judul, kategori, lokasi, atau status laporan..."
+            >
+            <small class="text-muted">Pencarian berjalan otomatis tanpa reload halaman menggunakan Fetch API.</small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>Judul</th>
+                        <th>Kategori</th>
+                        <th>Lokasi</th>
+                        <th>Status</th>
+                        <th>Dibuat Pada</th>
+                        <th>Aksi</th>
+                        <th>Workflow</th>
+                    </tr>
+                </thead>
+
+                <tbody id="reportTableBody">
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ report.title }}</td>
+                        <td>{{ report.category }}</td>
+                        <td>{{ report.location }}</td>
+                        <td>
+                            {% if report.status == 'REPORTED' %}
+                                <span class="badge bg-secondary">Reported</span>
+                            {% elif report.status == 'VERIFIED' %}
+                                <span class="badge bg-primary">Verified</span>
+                            {% elif report.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-warning text-dark">In Progress</span>
+                            {% elif report.status == 'RESOLVED' %}
+                                <span class="badge bg-success">Resolved</span>
+                            {% else %}
+                                <span class="badge bg-dark">{{ report.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.created_at }}</td>
+                        <td>
+                            <button type="button"
+                                    class="btn btn-sm btn-info text-white mb-1 detail-btn"
+                                    data-report-id="{{ report.pk }}">
+                                Detail
+                            </button>
+
+                            <a href="{% url 'update_report' report.pk %}" class="btn btn-sm btn-warning text-dark mb-1">Edit</a>
+
+                            <a href="{% url 'delete_report' report.pk %}" class="btn btn-sm btn-danger mb-1"
+                               onclick="return confirm('Apakah kamu yakin ingin menghapus laporan ini?');">
+                                Hapus
+                            </a>
+                        </td>
+                        <td>
+                            {% if user.is_authenticated and user.is_admin %}
+                                {% if report.status == 'REPORTED' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi Verified?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="VERIFIED">
+                                        <button type="submit" class="btn btn-sm btn-primary">Verifikasi</button>
+                                    </form>
+                                {% elif report.status == 'VERIFIED' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi In Progress?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark">Proses</button>
+                                    </form>
+                                {% elif report.status == 'IN_PROGRESS' %}
+                                    <form method="post" action="{% url 'update_status' report.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Ubah status laporan menjadi Resolved?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="RESOLVED">
+                                        <button type="submit" class="btn btn-sm btn-success">Selesaikan</button>
+                                    </form>
+                                {% elif report.status == 'RESOLVED' %}
+                                    <span class="text-muted">Selesai</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Khusus Admin</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div id="emptySearchMessage" class="alert alert-warning text-center mt-3 d-none">
+                Tidak ada laporan yang sesuai dengan kata kunci pencarian.
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <h4 class="mb-3">Belum ada laporan</h4>
+    <p class="text-muted">Silakan tambahkan laporan baru untuk mulai mengelola data.</p>
+
+    {% if user.is_authenticated and user.is_admin %}
+    <a href="{% url 'add_report' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Tambah Laporan
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailModalLabel">Detail Laporan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+
+            <div class="modal-body">
+                <h4 id="modalTitle" class="fw-bold mb-3">-</h4>
+
+                <div class="mb-2">
+                    <strong>Kategori:</strong>
+                    <span id="modalCategory">-</span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>Lokasi:</strong>
+                    <span id="modalLocation">-</span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>Status:</strong>
+                    <span id="modalStatus">-</span>
+                </div>
+
+                <div class="mb-2">
+                    <strong>Dibuat Pada:</strong>
+                    <span id="modalCreatedAt">-</span>
+                </div>
+
+                <hr>
+
+                <div>
+                    <strong>Deskripsi:</strong>
+                    <p id="modalDescription" class="mt-2 mb-0">-</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchInput');
+    const reportTableBody = document.getElementById('reportTableBody');
+    const emptySearchMessage = document.getElementById('emptySearchMessage');
+
+    const detailModalElement = document.getElementById('detailModal');
+    const detailModal = new bootstrap.Modal(detailModalElement);
+
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalLocation = document.getElementById('modalLocation');
+    const modalStatus = document.getElementById('modalStatus');
+    const modalCreatedAt = document.getElementById('modalCreatedAt');
+    const modalDescription = document.getElementById('modalDescription');
+
+    const isAdmin = {% if user.is_authenticated and user.is_admin %}true{% else %}false{% endif %};
+    let debounceTimer;
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function getStatusBadge(status, statusDisplay) {
+        const safeStatusDisplay = escapeHtml(statusDisplay);
+
+        if (status === 'REPORTED') {
+            return `<span class="badge bg-secondary">${safeStatusDisplay}</span>`;
+        } else if (status === 'VERIFIED') {
+            return `<span class="badge bg-primary">${safeStatusDisplay}</span>`;
+        } else if (status === 'IN_PROGRESS') {
+            return `<span class="badge bg-warning text-dark">${safeStatusDisplay}</span>`;
+        } else if (status === 'RESOLVED') {
+            return `<span class="badge bg-success">${safeStatusDisplay}</span>`;
+        } else {
+            return `<span class="badge bg-dark">${safeStatusDisplay}</span>`;
+        }
+    }
+
+    function getWorkflowButton(report) {
+        if (!isAdmin) {
+            return `<span class="text-muted">Khusus Admin</span>`;
+        }
+
+        if (report.status === 'REPORTED') {
+            return `
+                <form method="post" action="/update-status/${report.id}/" class="d-inline"
+                      onsubmit="return confirm('Ubah status laporan menjadi Verified?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="VERIFIED">
+                    <button type="submit" class="btn btn-sm btn-primary">Verifikasi</button>
+                </form>
+            `;
+        } else if (report.status === 'VERIFIED') {
+            return `
+                <form method="post" action="/update-status/${report.id}/" class="d-inline"
+                      onsubmit="return confirm('Ubah status laporan menjadi In Progress?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="IN_PROGRESS">
+                    <button type="submit" class="btn btn-sm btn-warning text-dark">Proses</button>
+                </form>
+            `;
+        } else if (report.status === 'IN_PROGRESS') {
+            return `
+                <form method="post" action="/update-status/${report.id}/" class="d-inline"
+                      onsubmit="return confirm('Ubah status laporan menjadi Resolved?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="RESOLVED">
+                    <button type="submit" class="btn btn-sm btn-success">Selesaikan</button>
+                </form>
+            `;
+        } else if (report.status === 'RESOLVED') {
+            return `<span class="text-muted">Selesai</span>`;
+        }
+
+        return `<span class="text-muted">-</span>`;
+    }
+
+    function renderReports(reports) {
+        reportTableBody.innerHTML = '';
+
+        if (reports.length === 0) {
+            emptySearchMessage.classList.remove('d-none');
+            return;
+        }
+
+        emptySearchMessage.classList.add('d-none');
+
+        reports.forEach(function (report, index) {
+            const row = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(report.title)}</td>
+                    <td>${escapeHtml(report.category)}</td>
+                    <td>${escapeHtml(report.location)}</td>
+                    <td>${getStatusBadge(report.status, report.status_display)}</td>
+                    <td>${escapeHtml(report.created_at)}</td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-sm btn-info text-white mb-1 detail-btn"
+                                data-report-id="${report.id}">
+                            Detail
+                        </button>
+
+                        <a href="/update/${report.id}/" class="btn btn-sm btn-warning text-dark mb-1">Edit</a>
+
+                        <a href="/delete/${report.id}/" class="btn btn-sm btn-danger mb-1"
+                           onclick="return confirm('Apakah kamu yakin ingin menghapus laporan ini?');">
+                            Hapus
+                        </a>
+                    </td>
+                    <td>
+                        ${getWorkflowButton(report)}
+                    </td>
+                </tr>
+            `;
+
+            reportTableBody.innerHTML += row;
+        });
+    }
+
+    function fetchReports(keyword) {
+        fetch(`/reports/search/?q=${encodeURIComponent(keyword)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data live search berhasil diterima:', data);
+                renderReports(data.reports);
+            })
+            .catch(error => {
+                console.error('Gagal mengambil data live search:', error);
+            });
+    }
+
+    function showReportDetail(reportId) {
+        fetch(`/report/${reportId}/api/`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data detail laporan berhasil diterima:', data);
+
+                modalTitle.textContent = data.title;
+                modalCategory.textContent = data.category;
+                modalLocation.textContent = data.location;
+                modalStatus.innerHTML = getStatusBadge(data.status, data.status_display);
+                modalCreatedAt.textContent = data.created_at;
+                modalDescription.innerHTML = escapeHtml(data.description).replaceAll('\n', '<br>');
+
+                detailModal.show();
+            })
+            .catch(error => {
+                console.error('Gagal mengambil detail laporan:', error);
+            });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+            clearTimeout(debounceTimer);
+
+            debounceTimer = setTimeout(function () {
+                const keyword = searchInput.value.trim();
+                fetchReports(keyword);
+            }, 400);
+        });
+    }
+
+    reportTableBody.addEventListener('click', function (event) {
+        const detailButton = event.target.closest('.detail-btn');
+
+        if (detailButton) {
+            const reportId = detailButton.getAttribute('data-report-id');
+            showReportDetail(reportId);
+        }
+    });
+});
+</script>
+{% endblock %}
