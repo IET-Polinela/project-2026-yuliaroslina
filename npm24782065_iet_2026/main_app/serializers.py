@@ -1,9 +1,10 @@
 from rest_framework import serializers
+
 from .models import Report
 
 
 class ReportSerializer(serializers.ModelSerializer):
-    reporter = serializers.SerializerMethodField()
+    reporter = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Report
@@ -18,6 +19,9 @@ class ReportSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-
-    def get_reporter(self, obj):
-        return "Warga Anonim"
+        read_only_fields = [
+            'id',
+            'reporter',
+            'created_at',
+            'updated_at',
+        ]
