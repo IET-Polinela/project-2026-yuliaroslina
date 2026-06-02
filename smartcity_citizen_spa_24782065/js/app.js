@@ -1,0 +1,1 @@
+console.log("Citizen Portal SPA berhasil dimuat.");
