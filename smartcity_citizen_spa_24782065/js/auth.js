@@ -19,9 +19,11 @@ function setupLoginForm() {
         if (result.status === 200) {
             localStorage.setItem("access_token", result.data.access);
             localStorage.setItem("refresh_token", result.data.refresh);
+            localStorage.setItem("username", username);
 
             alert("Login berhasil!");
             window.location.hash = "#dashboard";
+            location.reload();
         } else {
             alert("Login gagal. Periksa username dan password.");
         }
