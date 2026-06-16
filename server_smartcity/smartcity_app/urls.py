@@ -62,7 +62,7 @@ urlpatterns = [
     path(
         'api/register/',
         RegisterView.as_view(),
-        name='register'
+        name='api_register'
     ),
 
     # Login dan logout biasa
