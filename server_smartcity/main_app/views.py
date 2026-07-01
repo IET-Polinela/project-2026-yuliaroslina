@@ -5,9 +5,17 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.core.exceptions import PermissionDenied
 
 from .models import Report
 from .forms import ReportForm
+
+
+def is_admin_user(user):
+    return (
+        user.is_authenticated
+        and getattr(user, 'is_admin', False)
+    )
 
 
 class HomeView(TemplateView):
@@ -19,11 +27,25 @@ class ReportListView(ListView):
     template_name = 'main_app/report_list.html'
     context_object_name = 'reports'
 
+    def dispatch(self, request, *args, **kwargs):
+        if not is_admin_user(request.user):
+            messages.error(request, 'Akses Ditolak. Halaman laporan backend hanya untuk admin.')
+            return redirect('home')
+
+        return super().dispatch(request, *args, **kwargs)
+
 
 class ReportDetailView(DetailView):
     model = Report
     template_name = 'main_app/report_detail.html'
     context_object_name = 'report'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not is_admin_user(request.user):
+            messages.error(request, 'Akses Ditolak. Detail laporan backend hanya untuk admin.')
+            return redirect('home')
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ReportCreateView(CreateView):
@@ -33,14 +55,11 @@ class ReportCreateView(CreateView):
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin:
-            messages.error(request, 'Akses Ditolak')
-            return redirect('report_list')
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Laporan berhasil ditambahkan.')
-        return super().form_valid(form)
+        messages.error(
+            request,
+            'Akses ditolak. Penambahan laporan hanya dapat dilakukan melalui Portal Citizen.'
+        )
+        return redirect('report_list')
 
 
 class ReportUpdateView(UpdateView):
@@ -50,14 +69,19 @@ class ReportUpdateView(UpdateView):
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin:
-            messages.error(request, 'Akses Ditolak')
+        if not request.user.is_authenticated:
+            messages.error(request, 'Akses Ditolak.')
             return redirect('report_list')
-        return super().dispatch(request, *args, **kwargs)
+
+        if not getattr(request.user, 'is_admin', False):
+            messages.error(request, 'Akses Ditolak.')
+            return redirect('report_list')
+
+        raise PermissionDenied('Admin tidak boleh mengedit isi laporan warga.')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Laporan berhasil diperbarui.')
-        return super().form_valid(form)
+        messages.error(self.request, 'Admin tidak boleh mengedit isi laporan warga.')
+        raise PermissionDenied('Admin tidak boleh mengedit isi laporan warga.')
 
 
 class ReportDeleteView(DeleteView):
@@ -66,21 +90,29 @@ class ReportDeleteView(DeleteView):
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin:
-            messages.error(request, 'Akses Ditolak')
+        if not request.user.is_authenticated:
+            messages.error(request, 'Akses Ditolak.')
             return redirect('report_list')
-        return super().dispatch(request, *args, **kwargs)
+
+        if not getattr(request.user, 'is_admin', False):
+            messages.error(request, 'Akses Ditolak.')
+            return redirect('report_list')
+
+        raise PermissionDenied('Admin tidak boleh menghapus laporan warga.')
+
+    def delete(self, request, *args, **kwargs):
+        raise PermissionDenied('Admin tidak boleh menghapus laporan warga.')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Laporan berhasil dihapus.')
-        return super().form_valid(form)
+        raise PermissionDenied('Admin tidak boleh menghapus laporan warga.')
 
 
 class ReportUpdateStatusView(View):
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin:
+        if not is_admin_user(request.user):
             messages.error(request, 'Akses Ditolak')
             return redirect('report_list')
+
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, pk):
@@ -109,6 +141,12 @@ class ReportUpdateStatusView(View):
 
 
 def report_search_api(request):
+    if not is_admin_user(request.user):
+        return JsonResponse(
+            {'detail': 'Akses ditolak. Fitur pencarian laporan hanya untuk admin.'},
+            status=403
+        )
+
     keyword = request.GET.get('q', '').strip()
     normalized_keyword = keyword.replace(' ', '_')
 
@@ -137,7 +175,8 @@ def report_search_api(request):
         })
 
     return JsonResponse({
-        'reports': data
+        'reports': data,
+        'results': data,
     })
 
 

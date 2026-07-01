@@ -4,6 +4,36 @@ let currentTab = "my_reports";
 let currentPage = 1;
 let editingReportId = null;
 
+// =====================================================
+// HELPER ELEMENT
+// =====================================================
+function getElementByAnyId(...ids) {
+    for (const id of ids) {
+        const element = document.getElementById(id);
+        if (element) {
+            return element;
+        }
+    }
+
+    return null;
+}
+
+function getInputValue(...ids) {
+    const element = getElementByAnyId(...ids);
+    return element ? element.value : "";
+}
+
+function setInputValue(value, ...ids) {
+    const element = getElementByAnyId(...ids);
+
+    if (element) {
+        element.value = value || "";
+    }
+}
+
+// =====================================================
+// LOAD DATA DASHBOARD CITIZEN
+// =====================================================
 async function loadDashboardData(tab = currentTab, page = currentPage) {
     currentTab = tab;
     currentPage = page;
@@ -20,12 +50,16 @@ async function loadDashboardData(tab = currentTab, page = currentPage) {
         return;
     }
 
+    if (!result) {
+        return;
+    }
+
     if (result.status === 200) {
         const reports = result.data.results || [];
 
         renderList(reports);
         renderPagination(result.data);
-        loadSummaryStats();
+        await loadSummaryStats();
     } else {
         listContainer.innerHTML = `
             <div class="alert alert-danger">
@@ -39,8 +73,15 @@ async function loadDashboardData(tab = currentTab, page = currentPage) {
     }
 }
 
+// =====================================================
+// RENDER LIST LAPORAN
+// =====================================================
 function renderList(reports) {
     const listContainer = document.getElementById("listContainer");
+
+    if (!listContainer) {
+        return;
+    }
 
     if (reports.length === 0) {
         listContainer.innerHTML = `
@@ -56,48 +97,50 @@ function renderList(reports) {
         const statusText = formatStatus(report.status);
 
         return `
-            <div class="report-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="badge ${getStatusBadge(report.status)} px-3 py-2">
-                        ${statusText}
-                    </span>
+            <div class="col">
+                <div class="report-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge ${getStatusBadge(report.status)} px-3 py-2">
+                            ${statusText}
+                        </span>
 
-                    <span class="report-category">
-                        ${report.category}
-                    </span>
-                </div>
-
-                <h5>${report.title}</h5>
-
-                <p class="text-muted">
-                    ${report.description}
-                </p>
-
-                <div class="report-meta-line">
-                    <div>
-                        <strong>Lokasi:</strong> ${report.location}
+                        <span class="report-category">
+                            ${report.category}
+                        </span>
                     </div>
 
-                    <div>
-                        <strong>Oleh:</strong>
-                        ${currentTab === "feed" ? "Warga Anonim" : report.reporter}
+                    <h5>${report.title}</h5>
+
+                    <p class="text-muted">
+                        ${report.description}
+                    </p>
+
+                    <div class="report-meta-line">
+                        <div>
+                            <strong>Lokasi:</strong> ${report.location}
+                        </div>
+
+                        <div>
+                            <strong>Oleh:</strong>
+                            ${currentTab === "feed" ? "Warga Anonim" : (report.reporter_name || report.reporter || "Saya")}
+                        </div>
                     </div>
-                </div>
 
-                <div class="progress-label">
-                    <span>Progress Laporan:</span>
-                    <span class="text-primary">
-                        ${statusText} (${progress}%)
-                    </span>
-                </div>
-
-                <div class="progress mt-2">
-                    <div class="progress-bar ${getProgressColor(report.status)}"
-                        style="width: ${progress}%">
+                    <div class="progress-label">
+                        <span>Progress Laporan:</span>
+                        <span class="text-primary">
+                            ${statusText} (${progress}%)
+                        </span>
                     </div>
-                </div>
 
-                ${renderActionButton(report)}
+                    <div class="progress mt-2">
+                        <div class="progress-bar ${getProgressColor(report.status)}"
+                            style="width: ${progress}%">
+                        </div>
+                    </div>
+
+                    ${renderActionButton(report)}
+                </div>
             </div>
         `;
     }).join("");
@@ -117,6 +160,9 @@ function renderActionButton(report) {
     return "";
 }
 
+// =====================================================
+// PAGINATION
+// =====================================================
 function renderPagination(data) {
     const paginationContainer = document.getElementById("paginationContainer");
 
@@ -124,55 +170,84 @@ function renderPagination(data) {
         return;
     }
 
-    let buttons = `
-        <div class="d-flex justify-content-center align-items-center gap-2">
+    const totalItems = data.count || 0;
+    const pageSize = 10;
+    const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+    let html = `
+        <nav aria-label="Pagination laporan">
+            <ul class="pagination justify-content-center">
     `;
 
-    if (data.previous) {
-        buttons += `
-            <button class="btn btn-outline-primary btn-sm"
+    html += `
+        <li class="page-item ${currentPage <= 1 ? "disabled" : ""}">
+            <button class="page-link" type="button"
                 onclick="loadDashboardData('${currentTab}', ${currentPage - 1})">
                 Sebelumnya
             </button>
+        </li>
+    `;
+
+    for (let page = 1; page <= totalPages; page++) {
+        html += `
+            <li class="page-item ${currentPage === page ? "active" : ""}">
+                <button class="page-link" type="button"
+                    onclick="loadDashboardData('${currentTab}', ${page})">
+                    ${page}
+                </button>
+            </li>
         `;
     }
 
-    buttons += `
-        <span class="badge bg-primary px-3 py-2">
-            Halaman ${currentPage}
-        </span>
-    `;
-
-    if (data.next) {
-        buttons += `
-            <button class="btn btn-outline-primary btn-sm"
+    html += `
+        <li class="page-item ${currentPage >= totalPages ? "disabled" : ""}">
+            <button class="page-link" type="button"
                 onclick="loadDashboardData('${currentTab}', ${currentPage + 1})">
                 Berikutnya
             </button>
-        `;
-    }
+        </li>
+    `;
 
-    buttons += `</div>`;
+    html += `
+            </ul>
+        </nav>
+    `;
 
-    paginationContainer.innerHTML = buttons;
+    paginationContainer.innerHTML = html;
 }
 
+// =====================================================
+// TAB LAPORAN SAYA / FEED KOTA
+// =====================================================
 function switchTab(tab) {
     currentTab = tab;
     currentPage = 1;
 
-    document.getElementById("myReportsTab").classList.remove("active");
-    document.getElementById("feedTab").classList.remove("active");
+    const myReportsTab = document.getElementById("myReportsTab");
+    const feedTab = document.getElementById("tabFeedKota") || document.getElementById("feedTab");
 
-    if (tab === "my_reports") {
-        document.getElementById("myReportsTab").classList.add("active");
-    } else {
-        document.getElementById("feedTab").classList.add("active");
+    if (myReportsTab) {
+        myReportsTab.classList.remove("active");
+    }
+
+    if (feedTab) {
+        feedTab.classList.remove("active");
+    }
+
+    if (tab === "my_reports" && myReportsTab) {
+        myReportsTab.classList.add("active");
+    }
+
+    if (tab === "feed" && feedTab) {
+        feedTab.classList.add("active");
     }
 
     loadDashboardData(tab, 1);
 }
 
+// =====================================================
+// STATUS HELPER
+// =====================================================
 function getStatusBadge(status) {
     if (status === "DRAFT") {
         return "bg-secondary";
@@ -269,13 +344,22 @@ function getProgressValue(status) {
     return 0;
 }
 
+// =====================================================
+// SUMMARY STATUS
+// =====================================================
 async function loadSummaryStats() {
+    const statusCard = document.querySelector(".status-card");
+
+    if (statusCard && !statusCard.id) {
+        statusCard.id = "summaryStats";
+    }
+
     const result = await requestAPI(
         "/api/report/?tab=my_reports&page_size=1000",
         "GET"
     );
 
-    if (result.status !== 200) {
+    if (!result || result.status !== 200) {
         return;
     }
 
@@ -299,36 +383,58 @@ async function loadSummaryStats() {
         (report) => report.status === "RESOLVED"
     ).length;
 
-    document.getElementById("draftCount").textContent = draftCount;
-    document.getElementById("progressCount").textContent = progressCount;
-
+    const draftElement = document.getElementById("draftCount");
+    const progressElement = document.getElementById("progressCount");
     const processElement = document.getElementById("processCount");
+    const resolvedElement = document.getElementById("resolvedCount");
+
+    if (draftElement) {
+        draftElement.textContent = draftCount;
+    }
+
+    if (progressElement) {
+        progressElement.textContent = progressCount;
+    }
+
     if (processElement) {
         processElement.textContent = processCount;
     }
 
-    document.getElementById("resolvedCount").textContent = resolvedCount;
+    if (resolvedElement) {
+        resolvedElement.textContent = resolvedCount;
+    }
 }
 
+// =====================================================
+// MODAL BUAT LAPORAN
+// =====================================================
 function openCreateModal() {
     editingReportId = null;
 
-    document.getElementById("reportModalLabel").textContent =
-        "Tambah Laporan Baru";
+    const modalTitle = document.getElementById("reportModalLabel");
 
-    document.getElementById("reportForm").reset();
+    if (modalTitle) {
+        modalTitle.textContent = "Buat Laporan Baru";
+    }
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("reportModal")
-    );
+    const reportForm = document.getElementById("reportForm");
 
-    modal.show();
+    if (reportForm) {
+        reportForm.reset();
+    }
+
+    const modalElement = document.getElementById("reportModal");
+
+    if (modalElement) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
 }
 
 async function editDraft(id) {
     const result = await requestAPI(`/api/report/${id}/`, "GET");
 
-    if (result.status !== 200) {
+    if (!result || result.status !== 200) {
         alert("Gagal mengambil data draft.");
         return;
     }
@@ -337,27 +443,61 @@ async function editDraft(id) {
 
     editingReportId = id;
 
-    document.getElementById("reportModalLabel").textContent =
-        "Edit Draft Laporan";
+    const modalTitle = document.getElementById("reportModalLabel");
 
-    document.getElementById("titleInput").value = report.title;
-    document.getElementById("categoryInput").value = report.category;
-    document.getElementById("locationInput").value = report.location;
-    document.getElementById("descriptionInput").value = report.description;
+    if (modalTitle) {
+        modalTitle.textContent = "Edit Draft Laporan";
+    }
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("reportModal")
-    );
+    setInputValue(report.title, "inputTitle", "titleInput");
+    setInputValue(report.category, "inputCategory", "categoryInput");
+    setInputValue(report.location, "inputLocation", "locationInput");
+    setInputValue(report.description, "inputDescription", "descriptionInput");
 
-    modal.show();
+    const modalElement = document.getElementById("reportModal");
+
+    if (modalElement) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
 }
 
+// =====================================================
+// TUTUP MODAL SECARA AMAN
+// =====================================================
+function closeReportModal() {
+    const modalElement = document.getElementById("reportModal");
+
+    if (!modalElement) {
+        return;
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    modal.hide();
+
+    modalElement.classList.remove("show");
+    modalElement.setAttribute("aria-hidden", "true");
+    modalElement.removeAttribute("aria-modal");
+    modalElement.style.display = "none";
+
+    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+        backdrop.remove();
+    });
+
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.body.style.removeProperty("padding-right");
+}
+
+// =====================================================
+// SUBMIT LAPORAN
+// =====================================================
 async function submitReport(status) {
     const payload = {
-        title: document.getElementById("titleInput").value,
-        category: document.getElementById("categoryInput").value,
-        location: document.getElementById("locationInput").value,
-        description: document.getElementById("descriptionInput").value,
+        title: getInputValue("inputTitle", "titleInput"),
+        category: getInputValue("inputCategory", "categoryInput"),
+        location: getInputValue("inputLocation", "locationInput"),
+        description: getInputValue("inputDescription", "descriptionInput"),
         status: status,
     };
 
@@ -369,35 +509,56 @@ async function submitReport(status) {
 
     const result = await requestAPI(endpoint, method, payload);
 
-    if (result.status === 200 || result.status === 201) {
-        const modalElement = document.getElementById("reportModal");
-        const modal = bootstrap.Modal.getInstance(modalElement);
+    if (result && (result.status === 200 || result.status === 201)) {
+        closeReportModal();
 
-        modal.hide();
+        const reportForm = document.getElementById("reportForm");
 
-        document.getElementById("reportForm").reset();
+        if (reportForm) {
+            reportForm.reset();
+        }
+
         editingReportId = null;
 
-        loadDashboardData(currentTab, currentPage);
-        alert("Laporan berhasil disimpan.");
+        await loadDashboardData(currentTab, currentPage);
+        await loadSummaryStats();
+
+        alert("Laporan berhasil disimpan sebagai " + status);
     } else {
         alert("Gagal menyimpan laporan.");
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const saveDraftBtn = document.getElementById("saveDraftBtn");
-    const submitReportBtn = document.getElementById("submitReportBtn");
+// =====================================================
+// EVENT TOMBOL MODAL
+// =====================================================
+function setupReportForm() {
+    const draftButton = getElementByAnyId("btnDraft", "saveDraftBtn");
+    const submitButton = getElementByAnyId("btnSubmit", "submitReportBtn");
 
-    if (saveDraftBtn) {
-        saveDraftBtn.addEventListener("click", function () {
+    if (draftButton && !draftButton.dataset.bound) {
+        draftButton.dataset.bound = "true";
+
+        draftButton.addEventListener("click", function (event) {
+            event.preventDefault();
             submitReport("DRAFT");
         });
     }
 
-    if (submitReportBtn) {
-        submitReportBtn.addEventListener("click", function () {
+    if (submitButton && !submitButton.dataset.bound) {
+        submitButton.dataset.bound = "true";
+
+        submitButton.addEventListener("click", function (event) {
+            event.preventDefault();
             submitReport("REPORTED");
         });
     }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    setupReportForm();
 });
+
+if (document.readyState !== "loading") {
+    setupReportForm();
+}

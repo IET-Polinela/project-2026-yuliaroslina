@@ -1,6 +1,16 @@
-const API_BASE_URL = "http://103.151.63.87:8002";
+const API_BASE_URL = "http://localhost:8000";
 
-async function requestAPI(endpoint, method = "GET", bodyData = null) {
+function handleUnauthorized() {
+    alert("Sesi Anda telah habis atau Anda belum login.");
+
+    localStorage.clear();
+
+    window.location.hash = "#login";
+
+    return null;
+}
+
+async function requestAPI(endpoint, method = "GET", data = null) {
     const accessToken = localStorage.getItem("access_token");
 
     const headers = {
@@ -8,7 +18,7 @@ async function requestAPI(endpoint, method = "GET", bodyData = null) {
     };
 
     if (accessToken) {
-        headers["Authorization"] = `Bearer ${accessToken}`;
+        headers["Authorization"] = "Bearer " + accessToken;
     }
 
     const options = {
@@ -16,15 +26,35 @@ async function requestAPI(endpoint, method = "GET", bodyData = null) {
         headers: headers,
     };
 
-    if (bodyData) {
-        options.body = JSON.stringify(bodyData);
+    if (data !== null) {
+        options.body = JSON.stringify(data);
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    const data = await response.json();
+    try {
+        const response = await fetch(API_BASE_URL + endpoint, options);
 
-    return {
-        status: response.status,
-        data: data,
-    };
+        if (response.status === 401) {
+            return handleUnauthorized();
+        }
+
+        let responseData = null;
+
+        try {
+            responseData = await response.json();
+        } catch (error) {
+            responseData = null;
+        }
+
+        return {
+            status: response.status,
+            data: responseData,
+        };
+    } catch (error) {
+        console.error("Request API gagal:", error);
+
+        return {
+            status: 0,
+            data: null,
+        };
+    }
 }

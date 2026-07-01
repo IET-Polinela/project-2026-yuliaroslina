@@ -173,7 +173,7 @@
                 5 Laporan Terbaru Berstatus REPORTED
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" id="reportedTable">
                     <thead class="table-light">
                         <tr>
                             <th>Judul</th>
@@ -198,7 +198,7 @@
                 5 Laporan Terbaru Berstatus RESOLVED
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" id="resolvedTable">
                     <thead class="table-light">
                         <tr>
                             <th>Judul</th>
@@ -306,30 +306,50 @@ document.addEventListener('DOMContentLoaded', function () {
             const latestReportedTable = document.getElementById('latestReportedTable');
             latestReportedTable.innerHTML = '';
 
-            data.latest_reported.forEach(report => {
-                latestReportedTable.innerHTML += `
+            if (data.latest_reported.length === 0) {
+                latestReportedTable.innerHTML = `
                     <tr>
-                        <td>${report.title}</td>
-                        <td>${report.category}</td>
-                        <td><span class="badge bg-secondary badge-status">${report.status}</span></td>
-                        <td>${report.created_at}</td>
+                        <td colspan="4" class="text-center text-muted">
+                            Belum ada data REPORTED.
+                        </td>
                     </tr>
                 `;
-            });
+            } else {
+                data.latest_reported.forEach(report => {
+                    latestReportedTable.innerHTML += `
+                        <tr>
+                            <td>${report.title}</td>
+                            <td>${report.category}</td>
+                            <td><span class="badge bg-secondary badge-status">${report.status}</span></td>
+                            <td>${report.created_at}</td>
+                        </tr>
+                    `;
+                });
+            }
 
             const latestResolvedTable = document.getElementById('latestResolvedTable');
             latestResolvedTable.innerHTML = '';
 
-            data.latest_resolved.forEach(report => {
-                latestResolvedTable.innerHTML += `
+            if (data.latest_resolved.length === 0) {
+                latestResolvedTable.innerHTML = `
                     <tr>
-                        <td>${report.title}</td>
-                        <td>${report.category}</td>
-                        <td><span class="badge bg-success badge-status">${report.status}</span></td>
-                        <td>${report.created_at}</td>
+                        <td colspan="4" class="text-center text-muted">
+                            Belum ada data RESOLVED.
+                        </td>
                     </tr>
                 `;
-            });
+            } else {
+                data.latest_resolved.forEach(report => {
+                    latestResolvedTable.innerHTML += `
+                        <tr>
+                            <td>${report.title}</td>
+                            <td>${report.category}</td>
+                            <td><span class="badge bg-success badge-status">${report.status}</span></td>
+                            <td>${report.created_at}</td>
+                        </tr>
+                    `;
+                });
+            }
         })
         .catch(error => {
             console.error("Gagal mengambil data dashboard:", error);

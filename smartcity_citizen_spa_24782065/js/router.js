@@ -39,6 +39,7 @@ const routes = {
 
             <aside class="left-panel">
                 <button type="button"
+                    id="btnBukaModal"
                     class="create-report-box"
                     onclick="openCreateModal()">
                     <i class="bi bi-plus-circle"></i>
@@ -47,7 +48,7 @@ const routes = {
                     <span>Baru</span>
                 </button>
 
-                <div class="status-card">
+                <div class="status-card" id="summaryStats">
                     <h6>
                         <i class="bi bi-activity"></i>
                         STATUS LAPORAN ANDA
@@ -58,7 +59,7 @@ const routes = {
                             <i class="bi bi-pencil-square text-secondary"></i>
                             Draf
                         </span>
-                        <span class="status-badge bg-secondary" id="draftCount">0</span>
+                        <span class="status-badge badge bg-secondary" id="draftCount">0</span>
                     </div>
 
                     <div class="status-row">
@@ -66,7 +67,7 @@ const routes = {
                             <i class="bi bi-send-fill text-warning"></i>
                             Diajukan
                         </span>
-                        <span class="status-badge bg-warning text-dark" id="progressCount">0</span>
+                        <span class="status-badge badge bg-warning text-dark" id="progressCount">0</span>
                     </div>
 
                     <div class="status-row">
@@ -74,7 +75,7 @@ const routes = {
                             <i class="bi bi-gear-fill text-info"></i>
                             Diproses
                         </span>
-                        <span class="status-badge bg-info text-dark" id="processCount">0</span>
+                        <span class="status-badge badge bg-info text-dark" id="processCount">0</span>
                     </div>
 
                     <div class="status-row">
@@ -82,7 +83,7 @@ const routes = {
                             <i class="bi bi-check-circle-fill text-success"></i>
                             Selesai
                         </span>
-                        <span class="status-badge bg-success" id="resolvedCount">0</span>
+                        <span class="status-badge badge bg-success" id="resolvedCount">0</span>
                     </div>
                 </div>
 
@@ -104,7 +105,7 @@ const routes = {
                         </li>
 
                         <li class="nav-item">
-                            <button type="button" class="nav-link" id="feedTab"
+                            <button type="button" class="nav-link" id="tabFeedKota"
                                 onclick="switchTab('feed')">
                                 <i class="bi bi-globe-asia-australia"></i>
                                 Feed Kota (Publik)
@@ -128,6 +129,12 @@ const routes = {
 
 function handleRouting() {
     const hash = window.location.hash.replace("#", "") || "login";
+    const accessToken = localStorage.getItem("access_token");
+
+    if (hash === "dashboard" && !accessToken) {
+        window.location.hash = "#login";
+        return;
+    }
 
     appContent.innerHTML = routes[hash] || routes.login;
 
@@ -138,11 +145,29 @@ function handleRouting() {
     if (hash === "dashboard" && typeof loadDashboardData === "function") {
         loadDashboardData("my_reports", 1);
     }
+
+    updateNavbarUser();
+}
+
+function updateNavbarUser() {
+    const username = localStorage.getItem("username");
+    const navbarUser = document.getElementById("navbarUser");
+
+    if (navbarUser && username) {
+        navbarUser.innerHTML =
+            `<i class="bi bi-person-circle"></i> Halo, ${username} 👋`;
+    }
+
+    if (navbarUser && !username) {
+        navbarUser.innerHTML =
+            `<i class="bi bi-person-circle"></i> Halo 👋`;
+    }
 }
 
 function logoutUser() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("username");
 
     alert("Logout berhasil!");
     window.location.hash = "#login";
@@ -150,13 +175,3 @@ function logoutUser() {
 
 window.addEventListener("hashchange", handleRouting);
 window.addEventListener("DOMContentLoaded", handleRouting);
-window.addEventListener("DOMContentLoaded", () => {
-    const username = localStorage.getItem("username");
-
-    const navbarUser = document.getElementById("navbarUser");
-
-    if (navbarUser && username) {
-        navbarUser.innerHTML =
-            `<i class="bi bi-person-circle"></i> Halo, ${username} 👋`;
-    }
-});

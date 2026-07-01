@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count
 from django.http import JsonResponse
 from django.views.generic import TemplateView, View
@@ -5,11 +6,26 @@ from django.views.generic import TemplateView, View
 from main_app.models import Report
 
 
-class DashboardView(TemplateView):
+class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    raise_exception = True
+
+    def test_func(self):
+        user = self.request.user
+        return (
+            user.is_authenticated
+            and (
+                user.is_staff
+                or user.is_superuser
+                or getattr(user, 'is_admin', False)
+            )
+        )
+
+
+class DashboardView(AdminRequiredMixin, TemplateView):
     template_name = 'dashboard_24782065/dashboard.html'
 
 
-class DashboardDataView(View):
+class DashboardDataView(AdminRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         status_data = (
             Report.objects

@@ -47,12 +47,19 @@ class ReportViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        if not self.request.user.is_member:
+        user = self.request.user
+
+        if user.is_admin or user.is_staff or user.is_superuser:
             raise PermissionDenied(
-                'Hanya Citizen yang boleh membuat report.'
+                'Admin tidak boleh membuat laporan.'
             )
 
-        serializer.save(reporter=self.request.user)
+        if not user.is_member:
+            raise PermissionDenied(
+                'Hanya Citizen yang boleh membuat laporan.'
+            )
+
+        serializer.save(reporter=user)
 
     def perform_update(self, serializer):
         user = self.request.user
