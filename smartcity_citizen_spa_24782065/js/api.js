@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://103.151.63.87:8002";
 
 function handleUnauthorized() {
     alert("Sesi Anda telah habis atau Anda belum login.");
