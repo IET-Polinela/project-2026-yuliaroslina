@@ -27,7 +27,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             return queryset.filter(reporter=user)
 
         if tab == 'feed':
-            return queryset.exclude(reporter=user).exclude(status='DRAFT')
+            return queryset.exclude(status='DRAFT')
 
         if user.is_admin:
             return queryset.exclude(status='DRAFT')
